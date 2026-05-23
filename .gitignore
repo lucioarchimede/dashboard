@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+client/node_modules/
+
+# Build output
+client/dist/
+
+# Database (local only — Railway uses a volume)
+server/db/ecomdash.db
+server/db/ecomdash.db-shm
+server/db/ecomdash.db-wal
+
+# Environment
+.env
+.env.local
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
