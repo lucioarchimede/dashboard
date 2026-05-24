@@ -18,6 +18,7 @@ import { PageLoader } from './components/ui/Spinner'
 
 function Protected({ children }) {
   const { user, loading } = useAuth()
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
@@ -25,7 +26,9 @@ function Protected({ children }) {
       </div>
     )
   }
+  
   if (!user) return <Navigate to="/login" replace />
+  
   return (
     <LayoutProvider>
       <Layout>{children}</Layout>
@@ -34,30 +37,23 @@ function Protected({ children }) {
 }
 
 export default function App() {
+  const { user } = useAuth()
+  
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route
-        path="/*"
-        element={
-          <Protected>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/ventas" element={<Ventas />} />
-              <Route path="/gastos" element={<Gastos />} />
-              <Route path="/productos" element={<Productos />} />
-              <Route path="/clientes" element={<Clientes />} />
-              <Route path="/cash-flow" element={<CashFlow />} />
-              <Route path="/marketing" element={<Marketing />} />
-              <Route path="/notas" element={<Notas />} />
-              <Route path="/stock-forecast" element={<StockForecast />} />
-              <Route path="/reportes" element={<Reportes />} />
-              <Route path="/configuracion" element={<Configuracion />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Protected>
-        }
-      />
+      <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/" element={<Protected><Dashboard /></Protected>} />
+      <Route path="/ventas" element={<Protected><Ventas /></Protected>} />
+      <Route path="/gastos" element={<Protected><Gastos /></Protected>} />
+      <Route path="/productos" element={<Protected><Productos /></Protected>} />
+      <Route path="/clientes" element={<Protected><Clientes /></Protected>} />
+      <Route path="/cash-flow" element={<Protected><CashFlow /></Protected>} />
+      <Route path="/marketing" element={<Protected><Marketing /></Protected>} />
+      <Route path="/notas" element={<Protected><Notas /></Protected>} />
+      <Route path="/stock-forecast" element={<Protected><StockForecast /></Protected>} />
+      <Route path="/reportes" element={<Protected><Reportes /></Protected>} />
+      <Route path="/configuracion" element={<Protected><Configuracion /></Protected>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
