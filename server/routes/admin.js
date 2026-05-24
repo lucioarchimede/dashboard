@@ -9,17 +9,25 @@ router.post('/reset-data', authMiddleware, (req, res) => {
   }
 
   const db = getDb()
+  const tables = [
+    'stock_movements',
+    'sales',
+    'expenses',
+    'products',
+    'marketing_metrics',
+    'cash_flow',
+    'business_notes',
+    'product_feedback',
+    'goals',
+  ]
+
   try {
-    db.exec(`
-      DELETE FROM stock_movements;
-      DELETE FROM marketing_campaigns;
-      DELETE FROM expenses;
-      DELETE FROM sales;
-      DELETE FROM products;
-    `)
+    for (const table of tables) {
+      try { db.exec(`DELETE FROM ${table}`) } catch (_) {}
+    }
     try {
-      db.exec(`DELETE FROM sqlite_sequence WHERE name IN
-        ('products','sales','expenses','marketing_campaigns','stock_movements')`)
+      const names = tables.map(t => `'${t}'`).join(',')
+      db.exec(`DELETE FROM sqlite_sequence WHERE name IN (${names})`)
     } catch (_) {}
 
     res.json({ message: 'Datos eliminados correctamente' })

@@ -1,7 +1,8 @@
 const { getDb } = require('./index')
 
-const ALTER_STATEMENTS = [
-  // Products — extended product model
+// Each ALTER is run individually — failure (column already exists) is silently ignored
+const COLUMN_MIGRATIONS = [
+  // Products — extended model
   "ALTER TABLE products ADD COLUMN aroma TEXT DEFAULT 'Original'",
   "ALTER TABLE products ADD COLUMN variant TEXT DEFAULT 'single'",
   "ALTER TABLE products ADD COLUMN import_cost_per_unit REAL DEFAULT 0",
@@ -22,8 +23,9 @@ const ALTER_STATEMENTS = [
   "ALTER TABLE sales ADD COLUMN is_repeat_customer INTEGER DEFAULT 0",
 ]
 
-const NEW_TABLES = `
-  CREATE TABLE IF NOT EXISTS marketing_metrics (
+// Each CREATE TABLE is run individually so one error doesn't block the rest
+const NEW_TABLES = [
+  `CREATE TABLE IF NOT EXISTS marketing_metrics (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date DATE NOT NULL,
     ad_spend REAL NOT NULL,
@@ -38,9 +40,8 @@ const NEW_TABLES = `
     campaign_name TEXT,
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS product_feedback (
+  )`,
+  `CREATE TABLE IF NOT EXISTS product_feedback (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     sale_id INTEGER REFERENCES sales(id),
     product_id INTEGER REFERENCES products(id),
@@ -52,9 +53,8 @@ const NEW_TABLES = `
     nps_score INTEGER,
     date DATE NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS goals (
+  )`,
+  `CREATE TABLE IF NOT EXISTS goals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     month INTEGER NOT NULL,
     year INTEGER NOT NULL,
@@ -62,9 +62,8 @@ const NEW_TABLES = `
     units_goal INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(month, year)
-  );
-
-  CREATE TABLE IF NOT EXISTS business_notes (
+  )`,
+  `CREATE TABLE IF NOT EXISTS business_notes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date DATE NOT NULL,
     title TEXT,
@@ -72,9 +71,8 @@ const NEW_TABLES = `
     tags TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS cash_flow (
+  )`,
+  `CREATE TABLE IF NOT EXISTS cash_flow (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date DATE NOT NULL,
     type TEXT NOT NULL,
@@ -85,20 +83,35 @@ const NEW_TABLES = `
     status TEXT DEFAULT 'pagado',
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-`
+  )`,
+]
 
 function migrate() {
   const db = getDb()
-  for (const stmt of ALTER_STATEMENTS) {
+
+  for (const stmt of COLUMN_MIGRATIONS) {
     try { db.exec(stmt) } catch (_) {}
   }
-  db.exec(NEW_TABLES)
-  // Backfill gross_sales / net_sales for existing sales records
-  db.exec(`UPDATE sales SET gross_sales = total, net_sales = total WHERE (gross_sales IS NULL OR gross_sales = 0) AND total > 0`)
-  // Backfill mp_commission from payment_fee for existing records
-  db.exec(`UPDATE sales SET mp_commission = payment_fee WHERE (mp_commission IS NULL OR mp_commission = 0) AND payment_fee > 0`)
-  console.log('✅ Migración DB aplicada')
+
+  for (const stmt of NEW_TABLES) {
+    try {
+      db.exec(stmt)
+    } catch (err) {
+      console.error('Migration warning:', err.message)
+    }
+  }
+
+  try {
+    db.exec(`UPDATE sales SET gross_sales = total, net_sales = total
+             WHERE (gross_sales IS NULL OR gross_sales = 0) AND total > 0`)
+  } catch (_) {}
+
+  try {
+    db.exec(`UPDATE sales SET mp_commission = payment_fee
+             WHERE (mp_commission IS NULL OR mp_commission = 0) AND payment_fee > 0`)
+  } catch (_) {}
+
+  console.log('✅ Migrations applied')
 }
 
 module.exports = migrate
