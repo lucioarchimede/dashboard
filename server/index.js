@@ -19,11 +19,21 @@ const app = express()
 const PORT = process.env.PORT || 3001
 const isProd = process.env.NODE_ENV === 'production'
 
+// Configuración CORS
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'https://dashboard-six-sepia-23.vercel.app'
+  ],
+  credentials: true
+}
+
+app.use(cors(corsOptions))
+
 if (isProd) {
   app.use(express.static(path.join(__dirname, '../client/dist')))
-} else {
-  app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
 }
+
 app.use(express.json())
 
 app.use('/api/auth', require('./routes/auth'))
