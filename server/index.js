@@ -12,10 +12,10 @@ try {
   if (!fs.existsSync(dbPath)) {
     console.log('⚠️  Database not found, running setup...')
     require('./db/setup')
-  } else {
-    console.log('✅ Database found, running migrations...')
-    migrate()
   }
+  // Always migrate — idempotent, safe to run on every boot
+  console.log('✅ Running migrations...')
+  migrate()
 } catch (err) {
   console.error('❌ DB init error:', err.message)
 }
