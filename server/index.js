@@ -3,8 +3,19 @@ const cors = require('cors')
 const path = require('path')
 const migrate = require('./db/migrate')
 
-migrate()
-
+ // Inicializar DB si no existe
+   const fs = require('fs');
+   const path = require('path');
+   const dbPath = path.join(__dirname, 'db/ecomdash.db');
+   
+   if (!fs.existsSync(dbPath)) {
+     console.log('⚠️  Database not found, running setup...');
+     require('./db/setup');
+   } else {
+     console.log('✅ Database found, running migrations...');
+     migrate();
+   }
+   
 const app = express()
 const PORT = process.env.PORT || 3001
 const isProd = process.env.NODE_ENV === 'production'
