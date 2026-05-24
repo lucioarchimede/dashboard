@@ -3,13 +3,15 @@ const BASE = 'https://dashboard-sxkz.onrender.com'
 function getToken() {
   return localStorage.getItem('token')
 }
-
 async function request(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers }
   const token = getToken()
   if (token) headers['Authorization'] = `Bearer ${token}`
 
-  const res = await fetch(`${BASE}${path}`, { ...options, headers })
+  // Asegurar que siempre use /api
+  const url = `${BASE}/api${path}`
+  
+  const res = await fetch(url, { ...options, headers })
 
   if (res.status === 401) {
     localStorage.removeItem('token')
