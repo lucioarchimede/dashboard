@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL || 'https://dashboard-sxkz.onrender.com/api'
+const BASE = 'https://dashboard-sxkz.onrender.com'
 
 function getToken() {
   return localStorage.getItem('token')
