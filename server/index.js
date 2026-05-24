@@ -9,7 +9,6 @@ try {
   const dbPath = process.env.DB_PATH || path.join(__dirname, 'db/ecomdash.db')
   const dbDir = path.dirname(dbPath)
   if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true })
-
   if (!fs.existsSync(dbPath)) {
     console.log('⚠️  Database not found, running setup...')
     require('./db/setup')
@@ -53,14 +52,6 @@ app.use('/api/clients', require('./routes/clients'))
 app.use('/api/cash-flow', require('./routes/cash_flow'))
 app.use('/api/notes', require('./routes/notes'))
 app.use('/api/marketing-metrics', require('./routes/marketing_metrics'))
-
-if (isProd) {
-  const distPath = path.join(__dirname, '../client/dist')
-  app.use(express.static(distPath))
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'))
-  })
-}
 
 app.use((err, req, res, next) => {
   console.error(err.stack)
