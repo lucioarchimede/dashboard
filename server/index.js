@@ -29,11 +29,6 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions))
-
-if (isProd) {
-  app.use(express.static(path.join(__dirname, '../client/dist')))
-}
-
 app.use(express.json())
 
 app.use('/api/auth', require('./routes/auth'))
@@ -53,12 +48,6 @@ app.use((err, req, res, next) => {
   console.error(err.stack)
   res.status(500).json({ error: 'Error interno del servidor' })
 })
-
-if (isProd) {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'))
-  })
-}
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`)
